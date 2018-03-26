@@ -26,33 +26,33 @@ proc fpoll {} {
   global foldername foldericon gamename gameslist hakchipath outpath flist children
   foreach folder [glob -directory $hakchipath *] {
     if {[file isdirectory $folder]} {
-	  set folder [lindex [split $folder /] end]
-	  lappend flist $folder
-	  puts -nonewline "."
-	  flush stdout
+      set folder [lindex [split $folder /] end]
+      lappend flist $folder
+      puts -nonewline "."
+      flush stdout
       foreach subfolder [glob -directory $hakchipath $folder/*] {
-  	    set subfolder [lindex [split $subfolder /] end]
-	    if {[string match "*CLV-S-00*" $subfolder]} {
-		  set data [read [set infile [open "${hakchipath}${folder}/${subfolder}/${subfolder}.desktop" r]]]
-		  close $infile
-		  regexp {Name=([^\n]*)} $data - fname
-		  if {$fname == "Back"} { continue }
-  		  regexp {CLV-S-00(.*)} $subfolder - ele
-		  set parent($ele) $folder
-		  lappend children($folder) $ele
-		  set foldername($ele) $fname
-		  set foldericon($ele) $subfolder
-		  catch { file copy ${hakchipath}${folder}/${subfolder}/${subfolder}.png ${outpath}/icons }
-		} elseif {[regexp {CLV-[^S]-*} $subfolder]} {
-		  set data [read [set infile [open "${hakchipath}${folder}/${subfolder}/${subfolder}.desktop" r]]]
-		  close $infile
-		  regexp {Name=([^\n]*)} $data - fname
-		  regsub -all "&" $fname "&amp;" fname
+        set subfolder [lindex [split $subfolder /] end]
+        if {[string match "*CLV-S-00*" $subfolder]} {
+          set data [read [set infile [open "${hakchipath}${folder}/${subfolder}/${subfolder}.desktop" r]]]
+          close $infile
+          regexp {Name=([^\n]*)} $data - fname
+          if {$fname == "Back"} { continue }
+          regexp {CLV-S-00(.*)} $subfolder - ele
+          set parent($ele) $folder
+          lappend children($folder) $ele
+          set foldername($ele) $fname
+          set foldericon($ele) $subfolder
+          catch { file copy ${hakchipath}${folder}/${subfolder}/${subfolder}.png ${outpath}/icons }
+        } elseif {[regexp {CLV-[^S]-*} $subfolder]} {
+          set data [read [set infile [open "${hakchipath}${folder}/${subfolder}/${subfolder}.desktop" r]]]
+          close $infile
+          regexp {Name=([^\n]*)} $data - fname
+          regsub -all "&" $fname "&amp;" fname
           set gamename($subfolder) $fname
-		  lappend gameslist($folder) $subfolder
-		}
-	  }
-	}
+          lappend gameslist($folder) $subfolder
+        }
+      }
+    }
   }
 }
 
@@ -84,13 +84,13 @@ proc process {folder indent} {
   if {[info exists children($folder)]} {
     foreach child $children($folder) {
       puts $outfile "${indent}<Folder name=\"$foldername($child)\" icon=\"$foldericon($child)\" position=\"3\">"  
-	  process $child "$indent  "
+      process $child "$indent  "
     }
   }
   if {$folder != "000"} {
     set indent [string range $indent 2 end]
     puts $outfile "${indent}</Folder>"
-  }	
+  }    
 }
 
 proc main {} {
@@ -127,15 +127,15 @@ if {$argc != 2} {
   }
   if {![file exists $hakchipath]} {
     puts "Error: Games folder \"$hakchipath\" not found."
-	exit
+    exit
   }
   if {![file exists $outpath]} {
     puts "Error: Output path \"$outpath\" not found."
-	exit
+    exit
   }
   if {[string tolower $hakchipath] == [string tolower $outpath]} {
     puts "Error: games-folder path can not be the same as output-folder path."
-	exit
+    exit
   }
   puts "Rebuild XML $rVersion by StrikeLight, 2018."
   puts ""
