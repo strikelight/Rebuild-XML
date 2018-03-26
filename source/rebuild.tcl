@@ -23,11 +23,10 @@
 set rVersion "0.9-beta"
 
 proc fpoll {} {
-  global foldername foldericon gamename gameslist hakchipath outpath flist children
+  global foldername foldericon gamename gameslist hakchipath outpath children
   foreach folder [glob -directory $hakchipath *] {
     if {[file isdirectory $folder]} {
       set folder [lindex [split $folder /] end]
-      lappend flist $folder
       puts -nonewline "."
       flush stdout
       foreach subfolder [glob -directory $hakchipath $folder/*] {
@@ -57,7 +56,7 @@ proc fpoll {} {
 }
 
 proc finit {} {
-  global outfile hakchipath outpath
+  global outfile outpath
   if {![file exists ${outpath}/icons]} {
     file mkdir ${outpath}/icons
   }
@@ -137,7 +136,12 @@ if {$argc != 2} {
     puts "Error: games-folder path can not be the same as output-folder path."
     exit
   }
+  puts ""
   puts "Rebuild XML $rVersion by StrikeLight, 2018."
   puts ""
+  set starttime [clock microseconds]
   main
+  set endtime [clock microseconds]
+  puts ""
+  puts "Execution time: [format %.03f [expr ($endtime - $starttime)/1000000.0]] seconds"
 }
