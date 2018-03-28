@@ -1,6 +1,6 @@
 Rebuild XML is released under the GNU Public License.
 
-Rebuild XML v0.9-beta by StrikeLight
+Rebuild XML v0.92-beta by StrikeLight
 
 Description:
 ============
@@ -17,14 +17,19 @@ The program must NOT be run from the hakchi games folder.
 Usage:
 ======
 From command prompt, type:
-rebuild <path/to/hakchi/games/snes-*> <path/to/output/folder>
+rebuild <path/to/hakchi/games/snes-*> <path/to/output/folder> [/C hakchi-config-filename]
 
 Example: rebuild G:/hakchi/games/snes-eur/ C:/temp/
+Example 2: rebuild G:/hakchi/games/snes-eur/ C:/temp/ /C G:/tool/hakchi/config/config.ini
 
 The program will save folders_snes.xml to your output folder,
 as well as creating an "icons" folder to the output folder with the folder icons.
 
-Manually copy the folders_snes.xml file to your Hakchi2 "config" folder,
+If the /C option is used, the program will also attempt to re-add the games as being
+selected in the supplied hakchi config.ini file.
+
+
+Manually copy the resulting folders_snes.xml file to your Hakchi2 "config" folder,
 and manually copy the images in the "icons" folder to your Hakchi2 "folder_images" folder.
 
 
