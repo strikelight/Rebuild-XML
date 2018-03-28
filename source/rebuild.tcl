@@ -20,10 +20,11 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Rebuild XML.  If not, see <http://www.gnu.org/licenses/>.
 
-set rVersion "0.9-beta"
+set rVersion "0.92-beta"
 
 proc fpoll {} {
-  global foldername foldericon gamename gameslist hakchipath outpath children
+  global foldername foldericon gamename gameslist hakchipath outpath children codes
+  set codes [list]
   foreach folder [glob -directory $hakchipath *] {
     if {[file isdirectory $folder]} {
       set folder [lindex [split $folder /] end]
@@ -49,6 +50,7 @@ proc fpoll {} {
           regsub -all "&" $fname "&amp;" fname
           set gamename($subfolder) $fname
           lappend gameslist($folder) $subfolder
+          lappend codes $subfolder
         }
       }
     }
@@ -70,7 +72,7 @@ proc ffinish {} {
   puts $outfile "</Tree>"
   close $outfile
 }
- 
+
 proc process {folder indent} {
   global gameslist children gamename foldername foldericon outfile
   puts -nonewline "."
@@ -92,8 +94,24 @@ proc process {folder indent} {
   }    
 }
 
-proc main {} {
-  global outpath
+proc rebuildselection {parm} {
+  global codes
+  if {$parm != ""} {
+    set data [read [set infile [open "$parm" r]]]
+    close $infile
+    set outfile [open "${parm}.bak" w]
+    puts $outfile $data
+    close $outfile
+    set ccodes [join $codes ";"]
+    regsub -all {SelectedGamesSnes=[^\n]*} $data "SelectedGamesSnes=;$ccodes" data
+    set outfile [open "$parm" w]
+    puts $outfile $data
+    close $outfile
+  }
+}
+
+proc main {parm} {
+  global outpath codes
   puts "Initializing..."
   finit
   puts -nonewline "Parsing folders..."
@@ -103,6 +121,10 @@ proc main {} {
   flush stdout
   process "000" "  "
   puts ""
+  if {$parm != ""} {
+    puts "Rebuilding selected games..."
+    rebuildselection $parm
+  }
   puts "Finishing..."
   ffinish
   puts "Done."
@@ -111,11 +133,45 @@ proc main {} {
   puts "Please manually copy all png files in \"${outpath}icons/\" to your hakchi \"folder_images\" folder."  
 }
 
+set options [list "/C"]
+set options_description [list "/C filename\t\tUpdates selected games in the supplied hakchi config filename"]
 
-if {$argc != 2} {
-  puts "Usage: rebuild <games-folder> <output-folder>"
+proc isOpt {option} {
+  global options
+  foreach op $options {
+    if {[string tolower $option] == [string tolower $op]} {
+      return 1
+    }
+  }
+  return 0
+}
+
+if {$argc < 2} {
+  puts "Usage: rebuild <games-folder> <output-folder> \[/C hakchi-config-file\]"
   puts "Example: rebuild G:/hakchi/games/snes-eur/ C:/temp/"
+  puts ""
+  puts "Options:"
+  puts ""
+  for {set i 0} {$i < [llength $options]} {incr i} {
+    puts "  [lindex $options_description $i]"
+  }
 } else {
+  for {set j 2} {$j < [expr $argc]} {incr j} {
+    if {[isOpt [lindex $argv $j]]} {
+      set value([string tolower [lindex $argv $j]]) [lindex $argv [expr $j+1]]
+      incr j
+    } else {
+      puts "Usage: rebuild <games-folder> <output-folder> \[/C hakchi-config-file\]"
+      puts "Example: rebuild G:/hakchi/games/snes-eur/ C:/temp/"
+      puts ""
+      puts "Options:"
+      puts ""
+      for {set i 0} {$i < [llength $options]} {incr i} {
+        puts "  [lindex $options_description $i]"
+      }
+      exit
+    }	
+  }
   set hakchipath [lindex $argv 0]
   set outpath [lindex $argv 1]
   if {[string index $hakchipath end] != "/"} {
@@ -136,11 +192,20 @@ if {$argc != 2} {
     puts "Error: games-folder path can not be the same as output-folder path."
     exit
   }
+  if {[info exists value(/c)] && ![file exists $value(/c)]} {
+    puts "Error: hakchi config file \"$value(/c)\" not found."
+    exit
+  }
   puts ""
   puts "Rebuild XML $rVersion by StrikeLight, 2018."
   puts ""
   set starttime [clock microseconds]
-  main
+  if {[info exists value(/c)]} {
+    set parm $value(/c)
+  } else {
+    set parm ""
+  }
+  main $parm
   set endtime [clock microseconds]
   puts ""
   puts "Execution time: [format %.03f [expr ($endtime - $starttime)/1000000.0]] seconds"
