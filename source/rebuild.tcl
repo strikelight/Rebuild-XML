@@ -20,9 +20,9 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Rebuild XML.  If not, see <http://www.gnu.org/licenses/>.
 
-set rVersion "0.92-beta"
+set rVersion "1.0"
 
-proc fpoll {} {
+proc fpoll {parm} {
   global foldername foldericon gamename gameslist hakchipath outpath children codes
   set codes [list]
   foreach folder [glob -directory $hakchipath *] {
@@ -51,6 +51,24 @@ proc fpoll {} {
           set gamename($subfolder) $fname
           lappend gameslist($folder) $subfolder
           lappend codes $subfolder
+          if {$parm != ""} {
+            set spath ${hakchipath}${folder}/${subfolder}
+            if !{[catch { file copy $spath $parm } err]} {
+              set infile [open "${parm}$subfolder/${subfolder}.desktop" r]
+              fconfigure $infile -translation lf
+              set data [read $infile]
+              close $infile
+              regexp "${subfolder}/(\[^\n\]*)" $data - fname2
+              regsub -all {Exec=([^\n]*)} $data "Exec=/bin/md /var/games/${subfolder}/$fname2" data
+              regsub -all {Path=([^\n]*)} $data "Path=/var/lib/clover/profiles/0/$subfolder" data
+              regsub -all {Icon=([^\n]*)} $data "Icon=/var/games/${subfolder}/${subfolder}.png" data
+              set outfile [open "${parm}/$subfolder/${subfolder}.desktop" w]
+              fconfigure $outfile -translation lf
+              puts $outfile [string trim $data]
+              close $outfile
+            }            
+	# puts $err
+	  }
         }
       }
     }
@@ -63,6 +81,7 @@ proc finit {} {
     file mkdir ${outpath}/icons
   }
   set outfile [open "${outpath}folders_snes.xml" w]
+  fconfigure $outfile -translation crlf
   puts $outfile "<?xml version=\"1.0\" encoding=\"utf-16\"?>"
   puts $outfile "<Tree>"
 }
@@ -97,44 +116,54 @@ proc process {folder indent} {
 proc rebuildselection {parm} {
   global codes
   if {$parm != ""} {
-    set data [read [set infile [open "$parm" r]]]
+    set infile [open "$parm" r]
+    fconfigure $infile -translation crlf
+    set data [read $infile]
     close $infile
     set outfile [open "${parm}.bak" w]
+    fconfigure $outfile -translation crlf
     puts $outfile $data
     close $outfile
     set ccodes [join $codes ";"]
     regsub -all {SelectedGamesSnes=[^\n]*} $data "SelectedGamesSnes=;$ccodes" data
     set outfile [open "$parm" w]
+    fconfigure $outfile -translation crlf
     puts $outfile $data
     close $outfile
   }
 }
 
-proc main {parm} {
-  global outpath codes
+proc main {parm1 parm2} {
+  global outpath codes value
   puts "Initializing..."
   finit
   puts -nonewline "Parsing folders..."
-  fpoll
+  fpoll $parm2
   puts ""
   puts -nonewline "Processing..."
   flush stdout
   process "000" "  "
   puts ""
-  if {$parm != ""} {
+  if {$parm1 != ""} {
     puts "Rebuilding selected games..."
-    rebuildselection $parm
+    rebuildselection $parm1
   }
   puts "Finishing..."
   ffinish
   puts "Done."
   puts ""
   puts "Please manually copy \"${outpath}folders_snes.xml\" to your hakchi \"config\" folder."
-  puts "Please manually copy all png files in \"${outpath}icons/\" to your hakchi \"folder_images\" folder."  
+  puts "Please manually copy all png files in \"${outpath}icons/\" to your hakchi \"folder_images\" folder."
+  if {[info exists value(/g)]} {
+    puts "Please manually copy the folders in \"$parm2\" to your hakchi \"games_snes\" folder."
+  }
 }
 
-set options [list "/C"]
-set options_description [list "/C filename\t\tUpdates selected games in the supplied hakchi config filename"]
+set options [list "/C" "/G"]
+set options_description [list \
+"/C filename\t\tUpdates selected games in the supplied hakchi config filename" \
+"/G directory\t\tPulls game directories and places them into the specified directory" \
+]
 
 proc isOpt {option} {
   global options
@@ -147,7 +176,7 @@ proc isOpt {option} {
 }
 
 if {$argc < 2} {
-  puts "Usage: rebuild <games-folder> <output-folder> \[/C hakchi-config-file\]"
+  puts "Usage: rebuild <games-folder> <output-folder> \[/C hakchi-config-file\] \[/G output-directory\]"
   puts "Example: rebuild G:/hakchi/games/snes-eur/ C:/temp/"
   puts ""
   puts "Options:"
@@ -161,7 +190,7 @@ if {$argc < 2} {
       set value([string tolower [lindex $argv $j]]) [lindex $argv [expr $j+1]]
       incr j
     } else {
-      puts "Usage: rebuild <games-folder> <output-folder> \[/C hakchi-config-file\]"
+      puts "Usage: rebuild <games-folder> <output-folder> \[/C hakchi-config-file\] \[/G output-directory\]"
       puts "Example: rebuild G:/hakchi/games/snes-eur/ C:/temp/"
       puts ""
       puts "Options:"
@@ -196,16 +225,28 @@ if {$argc < 2} {
     puts "Error: hakchi config file \"$value(/c)\" not found."
     exit
   }
+  if {[info exists value(/g)] && ![file exists $value(/g)]} {
+    puts "Error: Specified output games directory \"$value(/g)\" not found."
+    exit
+  }
   puts ""
   puts "Rebuild XML $rVersion by StrikeLight, 2018."
   puts ""
   set starttime [clock microseconds]
   if {[info exists value(/c)]} {
-    set parm $value(/c)
+    set parm1 $value(/c)
   } else {
-    set parm ""
+    set parm1 ""
   }
-  main $parm
+  if {[info exists value(/g)]} {
+    set parm2 $value(/g)
+    if {[string index $parm2 end] != "/"} {
+      set parm2 "${parm2}/"
+    }
+  } else {
+    set parm2 ""
+  }
+  main $parm1 $parm2
   set endtime [clock microseconds]
   puts ""
   puts "Execution time: [format %.03f [expr ($endtime - $starttime)/1000000.0]] seconds"
