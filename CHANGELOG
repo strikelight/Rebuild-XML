@@ -1,0 +1,6 @@
+v1.1 (4/23/2018)
+- Fixed: Issues building XML file for advanced folder layouts (thanks to bslenul for troubleshooting)
+- Added: Support for Hakchi CE's new json config file format
+
+v1.0 (3/30/2018)
+- Initial Release

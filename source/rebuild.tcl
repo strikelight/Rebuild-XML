@@ -20,7 +20,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Rebuild XML.  If not, see <http://www.gnu.org/licenses/>.
 
-set rVersion "1.1-rc1"
+set rVersion "1.1"
 
 proc fpoll {parm} {
   global foldername foldericon gamename gameslist hakchipath outpath children codes
@@ -129,8 +129,23 @@ proc rebuildselection {parm} {
     fconfigure $outfile -translation crlf
     puts $outfile $data
     close $outfile
-    set ccodes [join $codes ";"]
-    regsub -all {SelectedGamesSnes=[^\n]*} $data "SelectedGamesSnes=;$ccodes" data
+    if {[string match "*.ini" $parm]} {
+      set ccodes [join $codes ";"]
+      regsub -all {SelectedGamesSnes=[^\n]*} $data "SelectedGamesSnes=;$ccodes" data
+    } elseif {[string match "*.json" $parm]} {
+      set ccodes "      \"SelectedGames\": \[\n"
+      foreach ele $codes {
+        append ccodes "        \"${ele}\",\n"
+      }
+      set ccodes [string trim $ccodes ",\n"]
+      append ccodes "\n      "
+      set ucodes "    \"SNES_USA\": \{\n$ccodes"
+      set ecodes "    \"SNES_EUR\": \{\n$ccodes"
+      set fcodes "    \"SuperFamicom\": \{\n$ccodes"
+      regsub -all {    \"SNES_USA\":[^\]]*} $data "$ucodes" data
+      regsub -all {    \"SNES_EUR\":[^\]]*} $data "$ecodes" data
+      regsub -all {    \"SuperFamicom\":[^\]]*} $data "$fcodes" data
+    }
     set outfile [open "$parm" w]
     fconfigure $outfile -translation crlf
     puts $outfile $data

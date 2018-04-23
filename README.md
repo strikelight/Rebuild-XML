@@ -1,6 +1,6 @@
 Rebuild XML is released under the GNU Public License.
 
-Rebuild XML v1.0 by StrikeLight
+Rebuild XML v1.1 by StrikeLight
 
 Description:
 ============
@@ -9,7 +9,7 @@ based on the provided games path, as best it can.
 
 Pre-requisites:
 ===============
-Note: This has only been tested with SNESC Mini and Hakchi2 1.1.0 CE.
+Note: This has only been tested with SNESC Mini and Hakchi2 CE.
 You must be using USB Host mode.
 The hakchi "games" folder must still exist on the USB drive.
 The program must NOT be run from the hakchi games folder.
@@ -45,4 +45,4 @@ Tips:
 
 Thanks:
 =======
-madmonkey,Cluster,KMFDManic,Team Shinkansen,The Other Guys,Hakchi Resources,/r/miniSNESmods,the Hakchi community
+madmonkey,Cluster,bslenul,KMFDManic,Team Shinkansen,The Other Guys,Hakchi Resources,/r/miniSNESmods,the Hakchi community
