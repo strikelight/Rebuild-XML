@@ -20,7 +20,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with Rebuild XML.  If not, see <http://www.gnu.org/licenses/>.
 
-set rVersion "1.1"
+set rVersion "1.2"
 
 proc fpoll {parm} {
   global foldername foldericon gamename gameslist hakchipath outpath children codes
@@ -36,7 +36,7 @@ proc fpoll {parm} {
           set data [read [set infile [open "${hakchipath}${folder}/${subfolder}/${subfolder}.desktop" r]]]
           close $infile
           regexp {Name=([^\n]*)} $data - fname
-          if {$fname == "Back"} { continue }
+          if {($fname == "Back") || ($fname == "Home")} { continue }
           if {[regexp {Exec=/bin/chmenu ([^\n]*)} $data - fnum]} {
             scan $fnum "%d" b
             scan $folder "%d" a
