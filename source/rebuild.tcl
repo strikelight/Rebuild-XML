@@ -53,6 +53,7 @@ proc fpoll {parm} {
           close $infile
           regexp {Name=([^\n]*)} $data - fname
           regsub -all "&" $fname "&amp;" fname
+          regsub -all "\"" $fname "&quot;" fname
           set gamename($subfolder) $fname
           lappend gameslist($folder) $subfolder
           lappend codes $subfolder
@@ -221,6 +222,7 @@ if {$argc < 2} {
       exit
     }	
   }
+  regsub -all {\\} $argv "/" argv
   set hakchipath [lindex $argv 0]
   set outpath [lindex $argv 1]
   if {[string index $hakchipath end] != "/"} {
