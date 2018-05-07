@@ -1,3 +1,7 @@
+v1.2 (5/6/2018)
+- Added: Check for Home shortcuts to ignore
+- Fixed: Issue with quotes in game names
+
 v1.1 (4/23/2018)
 - Fixed: Issues building XML file for advanced folder layouts (thanks to bslenul for troubleshooting)
 - Added: Support for Hakchi CE's new json config file format

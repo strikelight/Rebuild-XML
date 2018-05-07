@@ -1,6 +1,6 @@
 Rebuild XML is released under the GNU Public License.
 
-Rebuild XML v1.1 by StrikeLight
+Rebuild XML v1.2 by StrikeLight
 
 Description:
 ============
